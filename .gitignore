@@ -12,3 +12,9 @@ docs/
 
 # Dotenv file
 .env
+
+/op-genesis-configs/
+
+# Output files
+*.out
+*.json
