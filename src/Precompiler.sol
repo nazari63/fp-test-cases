@@ -1,0 +1,119 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+contract Precompiler {
+  constructor(uint256 index, uint256 count) {
+    if (index == 1) {
+      // ECRecover
+      uint8 v = 28;
+      bytes32 r = 0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608;
+      bytes32 s = 0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada;
+      for (uint256 i = 0; i < count; i++) {
+        bytes32 hash = bytes32(index);
+        ecrecover(hash, v, r, s);
+      }
+    } else if (index == 2) {
+      // SHA-256
+      for (uint256 i = 0; i < count; i++) {
+        sha256(abi.encodePacked(index));
+      }
+    } else if (index == 3) {
+      // RIPEMD-160
+      for (uint256 i = 0; i < count; i++) {
+        ripemd160(abi.encodePacked(index));
+      }
+    } else if (index == 4) {
+      // Identity
+      for (uint256 i = 0; i < count; i++) {
+        address(4).staticcall(abi.encode(index));
+      }
+    } else if (index == 5) {
+      // ModExp
+      bytes memory base = "8";
+      bytes memory exponent = "9";
+      for (uint256 i = 0; i < count; i++) {
+        bytes memory modulus = abi.encodePacked(index);
+        address(5).staticcall(abi.encodePacked(base.length, exponent.length, modulus.length, base, exponent, modulus));
+      }
+    } else if (index == 6) {
+      // ECAdd
+      for (uint256 i = 0; i < count; i++) {
+        uint256 x1 = 0x030644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd3;
+        uint256 y1 = 0x15ed738c0e0a7c92e7845f96b2ae9c0a68a6a449e3538fc7ff3ebf7a5a18a2c4;
+        uint256 x2 = 1;
+        uint256 y2 = 2;
+        (bool ok, bytes memory result) = address(6).staticcall(abi.encode(x1, y1, x2, y2));
+        require(ok, "ECAdd failed");
+        (x2, y2) = abi.decode(result, (uint256, uint256));
+      }
+    } else if (index == 7) {
+      // ECMul
+      uint256 x1 = 0x030644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd3;
+      uint256 y1 = 0x15ed738c0e0a7c92e7845f96b2ae9c0a68a6a449e3538fc7ff3ebf7a5a18a2c4;
+      for (uint256 i = 0; i < count; i++) {
+          (bool ok, bytes memory result) = address(7).staticcall(abi.encode(x1, y1, 2));
+          require(ok, "ECMul failed");
+          (x1, y1) = abi.decode(result, (uint256, uint256));
+      }
+    } else if (index == 8) {
+      // ECPairing
+      uint256[6] memory input = [
+        0x2cf44499d5d27bb186308b7af7af02ac5bc9eeb6a3d147c186b21fb1b76e18da,
+        0x2c0f001f52110ccfe69108924926e45f0b0c868df0e7bde1fe16d3242dc715f6,
+        0x1fb19bb476f6b9e44e2a32234da8212f61cd63919354bc06aef31e3cfaff3ebc,
+        0x22606845ff186793914e03e21df544c34ffe2f2f3504de8a79d9159eca2d98d9,
+        0x2bd368e28381e8eccb5fa81fc26cf3f048eea9abfdd85d7ed3ab3698d63e4f90,
+        0x2fe02e47887507adf0ff1743cbac6ba291e66f59be6bd763950bb16041a0a85e
+      ];
+      for (uint256 i = 0; i < count; i++) {
+        (bool ok, bytes memory result) = address(8).staticcall(abi.encode(input));
+        require(ok, "ECPairing failed");
+        // Use ECAdd to create new points
+        (ok, result) = address(6).staticcall(abi.encode(input[0], input[1], 1, 2));
+        require(ok, "ECAdd failed");
+        (input[0], input[1]) = abi.decode(result, (uint256, uint256));
+      }
+    } else if (index == 9) {
+      // Blake2f
+      bytes32[2] memory h;
+      h[0] = 0x48c9bdf267e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f3af54fa5;
+      h[1] = 0xd182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e1319cde05b;
+
+      bytes32[4] memory m;
+      m[0] = 0x6162630000000000000000000000000000000000000000000000000000000000;
+      m[1] = 0x0000000000000000000000000000000000000000000000000000000000000000;
+      m[2] = 0x0000000000000000000000000000000000000000000000000000000000000000;
+      m[3] = 0x0000000000000000000000000000000000000000000000000000000000000000;
+
+      bytes8[2] memory t;
+      t[0] = 0x0300000000000000;
+      t[1] = 0x0000000000000000;
+
+      bool f = true;
+
+      for (uint256 i = 0; i < count; i++) {
+        uint32 rounds = uint32(i);
+        
+        (bool ok,) = address(9).staticcall(abi.encodePacked(rounds, h[0], h[1], m[0], m[1], m[2], m[3], t[0], t[1], f));
+        require(ok, "Blake2f failed");
+      }
+    } else if (index == 10) {
+      // KZG Point Evaluation
+      revert("KZG Point Evaluation not implemented, as this precompile is accelerated by the FPVM");
+    } else if (index == 0x100) {
+      // p256Verify
+      bytes32 x = 0x31a80482dadf89de6302b1988c82c29544c9c07bb910596158f6062517eb089a;
+      bytes32 y = 0x2f54c9a0f348752950094d3228d3b940258c75fe2a413cb70baa21dc2e352fc5;
+      bytes32 r = 0xe22466e928fdccef0de49e3503d2657d00494a00e764fd437bdafa05f5922b1f;
+      bytes32 s = 0xbbb77c6817ccf50748419477e843d5bac67e6a70e97dde5a57e0c983b777e1ad;
+      for (uint256 i = 0; i < count; i++) {
+        bytes32 hash = bytes32(i);
+        (bool ok,) = address(0x100).staticcall(abi.encode(hash, r, s, x, y));
+        require(ok, "p256Verify failed");
+      }
+    } else {
+      // Invalid index
+      revert("Invalid index");
+    }
+  }
+}
