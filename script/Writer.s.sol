@@ -9,10 +9,10 @@ contract WriterScript is Script {
 
     function setUp() public {}
 
-    function run() public {
+    function run(uint256 gas_target) public {
         vm.startBroadcast();
 
-        writer = new Writer(500);
+        writer = new Writer(gas_target);
 
         vm.stopBroadcast();
     }

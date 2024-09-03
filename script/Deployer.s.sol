@@ -9,10 +9,10 @@ contract DeployerScript is Script {
 
     function setUp() public {}
 
-    function run() public {
+    function run(uint256 gas_target) public {
         vm.startBroadcast();
 
-        deployer = new Deployer(100);
+        deployer = new Deployer(gas_target);
 
         vm.stopBroadcast();
     }

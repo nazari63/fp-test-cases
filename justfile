@@ -16,6 +16,10 @@ cannon-dir := if `which cannon || true` != "" {
     join(env_var("OPTIMISM_DIR"), "cannon")
 }
 
+cannon-bin := join(cannon-dir, "bin/cannon")
+cannon-state := join(cannon-dir, "state.json")
+cannon-meta := join(cannon-dir, "meta.json")
+
 enclave := "devnet"
 
 account := "TEST"
@@ -23,7 +27,15 @@ account := "TEST"
 name := "Writer"
 script-file := name + ".s.sol"
 
-fixture-file := name + ".out"
+# Space-separated list of script arguments
+script-args := "1000000"
+script-signature := "run(" + replace_regex(script-args, "\\S+\\s?", "uint256,") + ")"
+
+expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")
+fixture-file := join("fixtures", expanded-name + ".json")
+
+op-program-output := join("output", "op-program", expanded-name + ".json")
+cannon-output := join("output", "cannon", expanded-name + ".json")
 
 verbosity := "-vv"
 
@@ -48,13 +60,17 @@ create-devnet:
 
 generate-fixture:
     #!/bin/bash
+    set -e
+
     forge script \
         --non-interactive \
         --password="" \
         --rpc-url {{l2-rpc-url}} \
         --account {{account}} \
-        --broadcast script/{{script-file}} \
-        -g 400
+        --broadcast \
+        --sig "{{script-signature}}" \
+        script/{{script-file}} \
+        {{script-args}}
 
     rm -rf op-genesis-configs
     kurtosis files download {{enclave}} op-genesis-configs
@@ -72,6 +88,8 @@ generate-fixture:
         sleep 10
     done
 
+    mkdir -p {{parent_directory(fixture-file)}}
+
     {{opfp}} from-op-program \
         --op-program {{op-program}} \
         --l2-block $L2_BLOCK_NUM \
@@ -86,18 +104,22 @@ generate-fixture:
         {{verbosity}}
 
 run-fixture:
+    mkdir -p {{parent_directory(op-program-output)}}
+
     {{opfp}} run-op-program \
         --op-program {{op-program}} \
         --fixture {{fixture-file}} \
-        --output {{name}}-stats.json \
+        --output {{op-program-output}} \
         {{verbosity}}
 
 cannon-fixture:
+    mkdir -p {{parent_directory(cannon-output)}}
+
     {{opfp}} run-op-program \
         --op-program {{op-program}} \
         --fixture {{fixture-file}} \
-        --cannon {{cannon-dir}}/bin/cannon \
-        --cannon-state {{cannon-dir}}/state.json \
-        --cannon-meta {{cannon-dir}}/meta.json \
-        --output {{name}}-cannon-stats.json \
+        --cannon {{cannon-bin}} \
+        --cannon-state {{cannon-state}} \
+        --cannon-meta {{cannon-meta}} \
+        --output {{cannon-output}} \
         {{verbosity}}

@@ -9,10 +9,10 @@ contract ReaderScript is Script {
 
     function setUp() public {}
 
-    function run() public {
+    function run(uint256 gas_target) public {
         vm.startBroadcast();
 
-        reader = new Reader(5000);
+        reader = new Reader(gas_target);
 
         vm.stopBroadcast();
     }
