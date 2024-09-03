@@ -2,6 +2,8 @@ optimism_package:
   participants:
     - el_type: op-geth
       cl_type: op-node
+  network_params:
+    granite_time_offset: 0
 ethereum_package:
   network_params:
     preset: minimal
