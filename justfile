@@ -89,6 +89,7 @@ run-fixture:
     {{opfp}} run-op-program \
         --op-program {{op-program}} \
         --fixture {{fixture-file}} \
+        --output {{name}}-stats.json \
         {{verbosity}}
 
 cannon-fixture:
@@ -98,5 +99,5 @@ cannon-fixture:
         --cannon {{cannon-dir}}/bin/cannon \
         --cannon-state {{cannon-dir}}/state.json \
         --cannon-meta {{cannon-dir}}/meta.json \
-        --cannon-debug {{cannon-dir}}/debug.json \
+        --output {{name}}-cannon-stats.json \
         {{verbosity}}
