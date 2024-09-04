@@ -24,12 +24,12 @@ enclave := "devnet"
 
 account := "TEST"
 
-name := "Writer"
+name := "Precompiler"
 script-file := name + ".s.sol"
 
 # Space-separated list of script arguments
-script-args := "1000000"
-script-signature := "run(" + replace_regex(script-args, "\\S+\\s?", "uint256,") + ")"
+script-args := "2 3000000 true"
+script-signature := "run(" + replace_regex(script-args, "^(\\S+)\\s+(\\S+)\\s+(\\S+)$", "uint256,uint256,bool") + ")"
 
 expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")
 fixture-file := join("fixtures", expanded-name + ".json")
@@ -53,17 +53,19 @@ create-devnet:
         --args-file network_params.yaml \
         --enclave {{enclave}}
 
+l1-rpc-url := `kurtosis service inspect devnet el-1-geth-lighthouse | grep -- ' rpc: ' | sed 's/.*-> //'`
+L2_RPC_URL := `kurtosis service inspect devnet op-el-1-op-geth-op-node | grep -- ' rpc: ' | sed 's/.*-> //'`
+beacon-url := `kurtosis service inspect devnet cl-1-lighthouse-geth | grep -- ' http: ' | sed 's/.*-> //'`
+ROLLUP_URL := `kurtosis service inspect devnet op-cl-1-op-node-op-geth | grep -- ' http: ' | sed 's/.*-> //'`
+
 generate-fixture:
     #!/bin/bash
     set -e
 
-    L2_RPC_URL={{shell("kurtosis service inspect " + enclave + " op-el-1-op-geth-op-node | grep -- ' rpc: ' | sed 's/.*-> //'")}}
-    ROLLUP_URL={{shell("kurtosis service inspect " + enclave + " op-cl-1-op-node-op-geth | grep -- ' http: ' | sed 's/.*-> //'")}}
-
     forge script \
         --non-interactive \
         --password="" \
-        --rpc-url $L2_RPC_URL \
+        --rpc-url {{ L2_RPC_URL }} \
         --account {{account}} \
         --broadcast \
         --sig "{{script-signature}}" \
@@ -76,7 +78,7 @@ generate-fixture:
     L2_BLOCK_NUM=$(($(jq < broadcast/{{script-file}}/2151908/run-latest.json '.receipts[0].blockNumber' -r)))
 
     while true; do
-        SYNC_STATUS=$(cast rpc optimism_syncStatus --rpc-url $ROLLUP_URL)
+        SYNC_STATUS=$(cast rpc optimism_syncStatus --rpc-url {{ ROLLUP_URL }})
         L2_SAFE_BLOCK_NUM=$(echo $SYNC_STATUS | jq '.safe_l2.number')
         L1_BLOCK_NUM=$(echo $SYNC_STATUS | jq '.head_l1.number')
         if [ $L2_SAFE_BLOCK_NUM -ge $(($L2_BLOCK_NUM)) ]; then
@@ -92,10 +94,10 @@ generate-fixture:
         --op-program {{op-program}} \
         --l2-block $L2_BLOCK_NUM \
         --l1-block $L1_BLOCK_NUM \
-        --l1-rpc-url {{"http://" + shell("kurtosis service inspect " + enclave + " el-1-geth-lighthouse | grep -- ' rpc: ' | sed 's/.*-> //'")}} \
-        --l2-rpc-url $L2_RPC_URL \
-        --beacon-url {{shell("kurtosis service inspect " + enclave + " cl-1-lighthouse-geth | grep -- ' http: ' | sed 's/.*-> //'")}} \
-        --rollup-url $ROLLUP_URL \
+        --l1-rpc-url http://{{l1-rpc-url}} \
+        --l2-rpc-url {{L2_RPC_URL}} \
+        --beacon-url {{beacon-url}} \
+        --rollup-url {{ROLLUP_URL}} \
         --rollup-path {{rollup-path}} \
         --genesis-path {{genesis-path}} \
         --output {{fixture-file}} \
