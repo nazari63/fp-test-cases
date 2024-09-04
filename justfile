@@ -28,7 +28,7 @@ name := "Precompiler"
 script-file := name + ".s.sol"
 
 # Space-separated list of script arguments
-script-args := "2 3000000 true"
+script-args := "3 1000000 true"
 script-signature := "run(" + replace_regex(script-args, "^(\\S+)\\s+(\\S+)\\s+(\\S+)$", "uint256,uint256,bool") + ")"
 
 expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")

@@ -87,7 +87,7 @@ contract Precompiler {
         while (gas_used < gas_target) {
             count += 1;
             if (use_long) {
-                sha256(abi.encodePacked(hashLongString()));
+                sha256(abi.encodePacked(hashLongString(), gas_used));
             } else {
                 sha256(abi.encodePacked(gas_used));
             }
@@ -104,7 +104,7 @@ contract Precompiler {
         while (gas_used < gas_target) {
             count += 1;
             if (use_long) {
-                ripemd160(abi.encodePacked(hashLongString()));
+                ripemd160(abi.encodePacked(hashLongString(), gas_used));
             } else {
                 ripemd160(abi.encodePacked(gas_used));
             }
@@ -121,7 +121,7 @@ contract Precompiler {
         while (gas_used < gas_target) {
             count += 1;
             if (use_long) {
-                address(4).staticcall(abi.encode(hashLongString()));
+                address(4).staticcall(abi.encode(hashLongString(), gas_used));
             } else {
                 address(4).staticcall(abi.encode(gas_used));
             }
@@ -140,7 +140,7 @@ contract Precompiler {
         while (gas_used < gas_target) {
             count += 1;
             if (use_long) {
-                bytes memory modulus = abi.encodePacked(hashLongString());
+                bytes memory modulus = abi.encodePacked(hashLongString(), gas_used);
                 address(5).staticcall(
                     abi.encodePacked(base.length, exponent.length, modulus.length, base, exponent, modulus)
                 );
