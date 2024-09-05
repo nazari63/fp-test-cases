@@ -3,7 +3,6 @@ use alloy_primitives::{Address, B256};
 use alloy_provider::{Provider, ReqwestProvider};
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
-use superchain_primitives::BlockID;
 
 /// Represents the response containing the l2 output.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -154,8 +153,8 @@ impl From<&superchain_primitives::RollupConfig> for RollupConfig {
     fn from(cfg: &superchain_primitives::RollupConfig) -> Self {
         let syscfg = cfg.genesis.system_config.clone().unwrap();
         let genesis = Genesis {
-            l1: cfg.genesis.l1,
-            l2: cfg.genesis.l2,
+            l1: cfg.genesis.l1.into(),
+            l2: cfg.genesis.l2.into(),
             l2_time: cfg.genesis.l2_time,
             system_config: SystemConfig {
                 batcher_addr: syscfg.batcher_address,
@@ -197,8 +196,8 @@ impl Into<superchain_primitives::RollupConfig> for RollupConfig {
     fn into(self) -> superchain_primitives::RollupConfig {
         superchain_primitives::RollupConfig {
             genesis: superchain_primitives::ChainGenesis {
-                l1: self.genesis.l1,
-                l2: self.genesis.l2,
+                l1: self.genesis.l1.into(),
+                l2: self.genesis.l2.into(),
                 l2_time: self.genesis.l2_time,
                 extra_data: None,
                 system_config: Some(superchain_primitives::SystemConfig {
@@ -243,6 +242,30 @@ pub struct Genesis {
     pub l2: BlockID,
     pub l2_time: u64,
     pub system_config: SystemConfig,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BlockID {
+    pub hash: B256,
+    pub number: u64,
+}
+
+impl Into<superchain_primitives::BlockID> for BlockID {
+    fn into(self) -> superchain_primitives::BlockID {
+        superchain_primitives::BlockID {
+            hash: self.hash,
+            number: self.number,
+        }
+    }
+}
+
+impl From<superchain_primitives::BlockID> for BlockID {
+    fn from(id: superchain_primitives::BlockID) -> Self {
+        Self {
+            hash: id.hash,
+            number: id.number,
+        }
+    }
 }
 
 // https://github.com/ethereum-optimism/optimism/blob/c7ad0ebae5dca3bf8aa6f219367a95c15a15ae41/op-service/eth/types.go#L371
