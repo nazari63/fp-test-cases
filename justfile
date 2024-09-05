@@ -32,8 +32,10 @@ script-args := "1000000"
 script-signature := "run(" + \
     replace_regex(
         replace_regex(
-            replace_regex(script-args, "\\d+", "uint256"),
-            "(true|false)", "bool"
+            replace_regex(
+                replace_regex(script-args, "0x[0-9a-fA-F]{40}", "address"),
+                "\\d+", "uint256",
+            ), "(true|false)", "bool"
         ), " ", ","
     ) + ")"
 
