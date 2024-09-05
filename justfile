@@ -3,7 +3,7 @@ set dotenv-load
 opfp := if `which opfp || true` != "" {
     `which opfp`
 } else {
-    join(env("OP_TESTS_DIR", ""), "target/debug/opfp")
+    "target/debug/opfp"
 }
 op-program := if `which op-program || true` != "" {
     `which op-program`

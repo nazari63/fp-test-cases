@@ -40,6 +40,7 @@ pub struct FaultProofInputs {
 
 /// The chain definition, either named or unnamed with a rollup config and genesis.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub enum ChainDefinition {
     /// Named chain definition.
     Named(String),
