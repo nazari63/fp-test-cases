@@ -23,9 +23,7 @@ contract Precompiler {
             run_blake2f(gas_target);
         } else if (index == 10) {
             // KZG Point Evaluation
-            revert(
-                "KZG Point Evaluation not implemented, as this precompile is accelerated by the FPVM"
-            );
+            revert("KZG Point Evaluation not implemented, as this precompile is accelerated by the FPVM");
         } else if (index == 0x100) {
             run_p256Verify(gas_target);
         } else {
@@ -87,14 +85,7 @@ contract Precompiler {
         while (gas_used < gas_target) {
             bytes memory modulus = abi.encodePacked(gas_used);
             address(5).staticcall(
-                abi.encodePacked(
-                    base.length,
-                    exponent.length,
-                    modulus.length,
-                    base,
-                    exponent,
-                    modulus
-                )
+                abi.encodePacked(base.length, exponent.length, modulus.length, base, exponent, modulus)
             );
             gas_used = start_gas - gasleft();
         }
@@ -110,9 +101,7 @@ contract Precompiler {
         uint256 y2 = 2;
 
         while (gas_used < gas_target) {
-            (bool ok, bytes memory result) = address(6).staticcall(
-                abi.encode(x1, y1, x2, y2)
-            );
+            (bool ok, bytes memory result) = address(6).staticcall(abi.encode(x1, y1, x2, y2));
             require(ok, "ECAdd failed");
             (x2, y2) = abi.decode(result, (uint256, uint256));
             gas_used = start_gas - gasleft();
@@ -128,9 +117,7 @@ contract Precompiler {
         uint256 scalar = 2;
 
         while (gas_used < gas_target) {
-            (bool ok, bytes memory result) = address(7).staticcall(
-                abi.encode(x1, y1, scalar)
-            );
+            (bool ok, bytes memory result) = address(7).staticcall(abi.encode(x1, y1, scalar));
             require(ok, "ECMul failed");
             (x1, y1) = abi.decode(result, (uint256, uint256));
             gas_used = start_gas - gasleft();
@@ -150,14 +137,10 @@ contract Precompiler {
             0x2fe02e47887507adf0ff1743cbac6ba291e66f59be6bd763950bb16041a0a85e
         ];
         while (gas_used < gas_target) {
-            (bool ok, bytes memory result) = address(8).staticcall(
-                abi.encode(input)
-            );
+            (bool ok, bytes memory result) = address(8).staticcall(abi.encode(input));
             require(ok, "ECPairing failed");
             // Use ECAdd to create new points
-            (ok, result) = address(6).staticcall(
-                abi.encode(input[0], input[1], 1, 2)
-            );
+            (ok, result) = address(6).staticcall(abi.encode(input[0], input[1], 1, 2));
             require(ok, "ECAdd failed");
             (input[0], input[1]) = abi.decode(result, (uint256, uint256));
             gas_used = start_gas - gasleft();
@@ -170,26 +153,14 @@ contract Precompiler {
 
         // Blake2f
         bytes32[2] memory h;
-        h[
-            0
-        ] = 0x48c9bdf267e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f3af54fa5;
-        h[
-            1
-        ] = 0xd182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e1319cde05b;
+        h[0] = 0x48c9bdf267e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f3af54fa5;
+        h[1] = 0xd182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e1319cde05b;
 
         bytes32[4] memory m;
-        m[
-            0
-        ] = 0x6162630000000000000000000000000000000000000000000000000000000000;
-        m[
-            1
-        ] = 0x0000000000000000000000000000000000000000000000000000000000000000;
-        m[
-            2
-        ] = 0x0000000000000000000000000000000000000000000000000000000000000000;
-        m[
-            3
-        ] = 0x0000000000000000000000000000000000000000000000000000000000000000;
+        m[0] = 0x6162630000000000000000000000000000000000000000000000000000000000;
+        m[1] = 0x0000000000000000000000000000000000000000000000000000000000000000;
+        m[2] = 0x0000000000000000000000000000000000000000000000000000000000000000;
+        m[3] = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
         bytes8[2] memory t;
         t[0] = 0x0300000000000000;
@@ -198,22 +169,10 @@ contract Precompiler {
         bool f = true;
 
         while (gas_used < gas_target) {
-            uint32 rounds = uint32(gas_used/100);
+            uint32 rounds = uint32(gas_used / 100);
 
-            (bool ok, ) = address(9).staticcall(
-                abi.encodePacked(
-                    rounds,
-                    h[0],
-                    h[1],
-                    m[0],
-                    m[1],
-                    m[2],
-                    m[3],
-                    t[0],
-                    t[1],
-                    f
-                )
-            );
+            (bool ok,) =
+                address(9).staticcall(abi.encodePacked(rounds, h[0], h[1], m[0], m[1], m[2], m[3], t[0], t[1], f));
             require(ok, "Blake2f failed");
             gas_used = start_gas - gasleft();
         }
@@ -229,9 +188,7 @@ contract Precompiler {
         bytes32 s = 0xbbb77c6817ccf50748419477e843d5bac67e6a70e97dde5a57e0c983b777e1ad;
         while (gas_used < gas_target) {
             bytes32 hash = bytes32(gas_used);
-            (bool ok, ) = address(0x100).staticcall(
-                abi.encode(hash, r, s, x, y)
-            );
+            (bool ok,) = address(0x100).staticcall(abi.encode(hash, r, s, x, y));
             require(ok, "p256Verify failed");
             gas_used = start_gas - gasleft();
         }
