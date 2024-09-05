@@ -15,12 +15,12 @@ Configure the environment variables in the `.env` file:
 OPTIMISM_DIR=/path/to/ethereum-optimsm/optimism
 ```
 
-Install [kurtosis](https://docs.kurtosis.com/install/) (required for creating a local devnet).
-
-Create a local devnet (requires [kurtosis](https://docs.kurtosis.com/install/)):
+Create a foundry test wallet (based on the default anvil mnemonic):
 ```shell
-$ just create-devnet
+cast wallet import TEST --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```
+
+Install [kurtosis](https://docs.kurtosis.com/install/) (required for creating a local devnet).
 
 ## Usage
 
