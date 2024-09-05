@@ -29,7 +29,13 @@ script-file := name + ".s.sol"
 
 # Space-separated list of script arguments
 script-args := "1000000"
-script-signature := "run(" + replace_regex(script-args, "\\S+\\s?", "uint256,") + ")"
+script-signature := "run(" + \
+    replace_regex(
+        replace_regex(
+            replace_regex(script-args, "\\d+", "uint256"),
+            "(true|false)", "bool"
+        ), " ", ","
+    ) + ")"
 
 expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")
 fixture-file := join("fixtures", expanded-name + ".json")
