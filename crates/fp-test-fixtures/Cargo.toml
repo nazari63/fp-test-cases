@@ -1,0 +1,25 @@
+[package]
+name = "fp-test-fixtures"
+description = "Types for test vectors"
+version = "0.1.0"
+exclude = ["src/testdata"]
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Core
+serde.workspace = true
+serde_repr.workspace = true
+color-eyre.workspace = true
+
+# Alloy
+alloy-primitives.workspace = true
+
+# OP Types
+superchain-primitives.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

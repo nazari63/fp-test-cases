@@ -3,17 +3,17 @@ set dotenv-load
 opfp := if `which opfp || true` != "" {
     `which opfp`
 } else {
-    join(env_var("OP_TESTS_DIR"), "target/debug/opfp")
+    join(env("OP_TESTS_DIR", ""), "target/debug/opfp")
 }
 op-program := if `which op-program || true` != "" {
     `which op-program`
 } else {
-    join(env_var("OPTIMISM_DIR"), "op-program/bin/op-program")
+    join(env("OPTIMISM_DIR"), "op-program/bin/op-program")
 }
 cannon-dir := if `which cannon || true` != "" {
     parent_directory(parent_directory(`which cannon`))
 } else {
-    join(env_var("OPTIMISM_DIR"), "cannon")
+    join(env("OPTIMISM_DIR"), "cannon")
 }
 
 cannon-bin := join(cannon-dir, "bin/cannon")
@@ -42,17 +42,40 @@ verbosity := "-vv"
 genesis-path := "op-genesis-configs/genesis.json"
 rollup-path := "op-genesis-configs/rollup.json"
 
+# default recipe to display help information
 default:
   @just --list
 
+# Fixes and checks all workspace formatting
+fmt: fmt-fix fmt-check
+
+# Fixes the formatting of the workspace
+fmt-fix:
+  cargo +nightly fmt --all
+
+# Check the formatting of the workspace
+fmt-check:
+  cargo +nightly fmt --all -- --check
+
+# Run clippy lints on the workspace
+clippy:
+    cargo +nightly clippy --workspace --all --all-features --all-targets -- -D warnings
+
+# Build for the native target
+build *args='':
+  cargo build --workspace --all $@
+
+# Shuts down and removes the local devnet
 cleanup-devnet:
     kurtosis enclave rm {{enclave}} -f
 
+# Creates a new local devnet
 create-devnet:
     kurtosis run github.com/ethpandaops/optimism-package \
         --args-file network_params.yaml \
         --enclave {{enclave}}
 
+# Generates a fixture for the given script (name) and arguments (script-args)
 generate-fixture:
     #!/bin/bash
     set -e
@@ -101,6 +124,7 @@ generate-fixture:
         --output {{fixture-file}} \
         {{verbosity}}
 
+# Runs the given fixture through the op-program
 run-fixture:
     mkdir -p {{parent_directory(op-program-output)}}
 
@@ -110,6 +134,7 @@ run-fixture:
         --output {{op-program-output}} \
         {{verbosity}}
 
+# Runs the given fixture through Cannon and op-program
 cannon-fixture:
     mkdir -p {{parent_directory(cannon-output)}}
 
