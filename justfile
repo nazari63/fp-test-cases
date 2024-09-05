@@ -24,12 +24,19 @@ enclave := "devnet"
 
 account := "TEST"
 
-name := "Precompiler"
-script-file := name + ".s.sol"
-
 # Space-separated list of script arguments
-script-args := "3 1000000 true"
-script-signature := "run(" + replace_regex(script-args, "^(\\S+)\\s+(\\S+)\\s+(\\S+)$", "uint256,uint256,bool") + ")"
+
+## Precompile 
+# name := "Precompiler"
+# script-file := name + ".s.sol"
+# script-args := "2 1000000 true"
+# script-signature := "run(" + replace_regex(script-args, "^(\\S+)\\s+(\\S+)\\s+(\\S+)$", "uint256,uint256,bool") + ")"
+
+## Transfer 
+name := "ERC20Transfer"
+script-file := name + ".s.sol"
+script-args := "2000000 0xa83114A443dA1CecEFC50368531cACE9F37fCCcb"
+script-signature := "run(" + replace_regex(script-args, "^(\\S+)\\s+(\\S+)$", "uint256,address") + ")"
 
 expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")
 fixture-file := join("fixtures", expanded-name + ".json")
@@ -103,23 +110,35 @@ generate-fixture:
         --output {{fixture-file}} \
         {{verbosity}}
 
-run-fixture:
-    mkdir -p {{parent_directory(op-program-output)}}
+run-fixture name index gasUse bool:
+    mkdir -p {{parent_directory("./output/op-program/{{name}}-{{index}}-{{gasUse}}-{{bool}}.json")}}
 
     {{opfp}} run-op-program \
         --op-program {{op-program}} \
-        --fixture {{fixture-file}} \
-        --output {{op-program-output}} \
+        --fixture ./fixtures/{{name}}-{{index}}-{{gasUse}}-{{bool}}.json \
+        --output ./output/op-program/{{name}}-{{index}}-{{gasUse}}-{{bool}}.json \
         {{verbosity}}
 
-cannon-fixture:
-    mkdir -p {{parent_directory(cannon-output)}}
+cannon-fixture name index gasUse bool:
+    mkdir -p {{parent_directory("./output/cannon/{{name}}-{{index}}-{{gasUse}}-{{bool}}.json")}}
 
     {{opfp}} run-op-program \
         --op-program {{op-program}} \
-        --fixture {{fixture-file}} \
+        --fixture ./fixtures/{{name}}-{{index}}-{{gasUse}}-{{bool}}.json \
         --cannon {{cannon-bin}} \
         --cannon-state {{cannon-state}} \
         --cannon-meta {{cannon-meta}} \
-        --output {{cannon-output}} \
+        --output ./output/cannon/{{name}}-{{index}}-{{gasUse}}-{{bool}}.json \
+        {{verbosity}}
+
+cannon-transfer-fixture gasUse address:
+    mkdir -p {{parent_directory("./output/cannon/Transfer-{{gasUse}}-{{address}}.json")}}
+
+    {{opfp}} run-op-program \
+        --op-program {{op-program}} \
+        --fixture ./fixtures/Transfer-{{gasUse}}-{{address}}.json \
+        --cannon {{cannon-bin}} \
+        --cannon-state {{cannon-state}} \
+        --cannon-meta {{cannon-meta}} \
+        --output ./output/cannon/Transfer-{{gasUse}}-{{address}}.json \
         {{verbosity}}

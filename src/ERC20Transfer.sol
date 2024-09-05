@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Token is ERC20 {
     constructor() ERC20("Token", "TKN") {
@@ -9,7 +9,7 @@ contract Token is ERC20 {
     }
 }
 
-contract Transfer {
+contract ERC20Transfer {
     constructor(uint256 gas_target, address to) {
         Token token = new Token();
         uint256 start_gas = gasleft();
