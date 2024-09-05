@@ -42,8 +42,8 @@ script-signature := "run(" + \
 expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")
 fixture-file := join("fixtures", expanded-name + ".json")
 
-op-program-output := join("output", "op-program", expanded-name + ".json")
-cannon-output := join("output", "cannon", expanded-name + ".json")
+op-program-output := join("output", "op-program", file_name(fixture-file))
+cannon-output := join("output", "cannon", file_name(fixture-file))
 
 verbosity := "-vv"
 
