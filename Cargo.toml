@@ -1,0 +1,42 @@
+[workspace]
+members = ["crates/*", "bin/*"]
+default-members = ["bin/opfp"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+authors = ["BrianBland"]
+repository = "https://github.com/BrianBland/fp-test-cases"
+homepage = "https://github.com/BrianBland/fp-test-cases"
+exclude = ["**/target", "benches/"]
+
+[workspace.dependencies]
+# General
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_repr = "0.1"
+thiserror = "1"
+color-eyre = "0.6"
+lazy_static = "1"
+tracing = "0.1"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+clap = { version = "4", features = ["derive"] }
+shellwords = "1"
+reqwest = { version = "0.12", features = ["stream"] }
+tracing-subscriber = "0.3.18"
+
+# Alloy Dependencies
+alloy-primitives = { version = "0.8" }
+alloy-eips = { version = "0.3" }
+alloy-provider = { version = "0.2" }
+
+# OP Types
+superchain-registry = "0.3.4"
+superchain-primitives = "0.3.4"
+kona-primitives = { git = "https://github.com/ethereum-optimism/kona", version = "0.0.2", features = ["online"] }
+kona-derive = { git = "https://github.com/ethereum-optimism/kona", version = "0.0.3", features = ["online"] }
+
+# Internal
+fp-test-fixtures = { path = "crates/fp-test-fixtures" }

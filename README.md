@@ -1,66 +1,67 @@
-## Foundry
+## Fault Proof Test Cases
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+### Setup
 
-Foundry consists of:
+Clone the [ethereum-optimism/optimism](github.com:ethereum-optimism/optimism) repository and build op-program and cannon:
+```shell
+$ cd /path/to/your/workspace
+$ git clone git@github.com:ethereum-optimism/optimism.git
+$ cd optimism
+$ make op-program cannon
+$ cd cannon
+$ ./bin/cannon load-elf --path=../op-program/bin/op-program-client.elf
+```
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Configure the environment variables in the `.env` file:
+```shell
+OPTIMISM_DIR=/path/to/ethereum-optimsm/optimism
+```
 
-## Documentation
+Create a foundry test wallet (based on the default anvil mnemonic):
+```shell
+cast wallet import TEST --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+```
 
-https://book.getfoundry.sh/
+Install [kurtosis](https://docs.kurtosis.com/install/) (required for creating a local devnet).
 
 ## Usage
 
-### Build
+### Build the `opfp` binary
 
 ```shell
-$ forge build
+$ just build
 ```
 
-### Test
-
+### Start a local devnet
 ```shell
-$ forge test
+$ just create-devnet
 ```
 
-### Format
-
+### Cleanup a local devnet
 ```shell
-$ forge fmt
+$ just cleanup-devnet
 ```
 
-### Gas Snapshots
+### Generate Fixtures (requires a local devnet)
 
 ```shell
-$ forge snapshot
+$ just name=<script name> script-args="<script args>" generate-fixture
+# Example
+$ just name=Reader script-args="2000000" generate-fixture
 ```
 
-### Anvil
+### Test Fixtures in op-program
 
 ```shell
-$ anvil
+$ just name=<script name> script-args="<script args>" run-fixture
+# Example
+$ just name=Reader script-args="2000000" run-fixture
 ```
 
-### Deploy
+### Test Fixtures in Cannon
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+$ just name=<script name> script-args="<script args>" cannon-fixture
+# Example
+$ just name=Reader script-args="2000000" cannon-fixture
 ```
