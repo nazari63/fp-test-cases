@@ -8,6 +8,8 @@ $ cd /path/to/your/workspace
 $ git clone git@github.com:ethereum-optimism/optimism.git
 $ cd optimism
 $ make op-program cannon
+$ cd cannon
+$ ./bin/cannon load-elf --path=../op-program/bin/op-program-client.elf
 ```
 
 Configure the environment variables in the `.env` file:
