@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {console} from "forge-std/Script.sol";
+
 contract Precompiler {
-    constructor(uint256 index, uint256 gas_target) {
+    constructor(uint256 index, uint256 gas_target, bool use_long) {
         if (index == 1) {
             run_ecrecover(gas_target);
         } else if (index == 2) {
-            run_sha256(gas_target);
+            run_sha256(gas_target, use_long);
         } else if (index == 3) {
-            run_ripemd160(gas_target);
+            run_ripemd160(gas_target, use_long);
         } else if (index == 4) {
-            run_identity(gas_target);
+            run_identity(gas_target, use_long);
         } else if (index == 5) {
-            run_modexp(gas_target);
+            run_modexp(gas_target, use_long);
         } else if (index == 6) {
             run_ecadd(gas_target);
         } else if (index == 7) {
@@ -32,6 +34,37 @@ contract Precompiler {
         }
     }
 
+    function hashLongString() public pure returns (string memory) {
+        string memory longInput = string(
+            abi.encodePacked(
+                "This is a long input string for precompile ",
+                "and it is being repeated multiple times to increase the size. ",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ",
+                "Vivamus luctus urna sed urna ultricies ac tempor dui sagittis. ",
+                "In condimentum facilisis porta. Sed nec diam eu diam mattis viverra. ",
+                "Nulla fringilla, orci ac euismod semper, magna diam porttitor mauris, ",
+                "quis sollicitudin sapien justo in libero. Vestibulum mollis mauris enim. ",
+                "Morbi euismod magna ac lorem rutrum elementum. " "This is a long input string for precompile ",
+                "and it is being repeated multiple times to increase the size. ",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ",
+                "Vivamus luctus urna sed urna ultricies ac tempor dui sagittis. ",
+                "In condimentum facilisis porta. Sed nec diam eu diam mattis viverra. ",
+                "Nulla fringilla, orci ac euismod semper, magna diam porttitor mauris, ",
+                "quis sollicitudin sapien justo in libero. Vestibulum mollis mauris enim. ",
+                "Morbi euismod magna ac lorem rutrum elementum. " "This is a long input string for precompile ",
+                "and it is being repeated multiple times to increase the size. ",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ",
+                "Vivamus luctus urna sed urna ultricies ac tempor dui sagittis. ",
+                "In condimentum facilisis porta. Sed nec diam eu diam mattis viverra. ",
+                "Nulla fringilla, orci ac euismod semper, magna diam porttitor mauris, ",
+                "quis sollicitudin sapien justo in libero. Vestibulum mollis mauris enim. ",
+                "Morbi euismod magna ac lorem rutrum elementum. "
+            )
+        );
+
+        return longInput;
+    }
+
     function run_ecrecover(uint256 gas_target) private {
         uint256 start_gas = gasleft();
         uint256 gas_used = 0;
@@ -46,49 +79,80 @@ contract Precompiler {
         }
     }
 
-    function run_sha256(uint256 gas_target) private {
+    function run_sha256(uint256 gas_target, bool use_long) private {
         uint256 start_gas = gasleft();
         uint256 gas_used = 0;
 
+        uint256 count = 0;
         while (gas_used < gas_target) {
-            sha256(abi.encodePacked(gas_used));
+            count += 1;
+            if (use_long) {
+                sha256(abi.encodePacked(hashLongString(), gas_used));
+            } else {
+                sha256(abi.encodePacked(gas_used));
+            }
             gas_used = start_gas - gasleft();
         }
+        console.log("SHA256 count: %d", count);
     }
 
-    function run_ripemd160(uint256 gas_target) private {
+    function run_ripemd160(uint256 gas_target, bool use_long) private {
         uint256 start_gas = gasleft();
         uint256 gas_used = 0;
 
+        uint256 count = 0;
         while (gas_used < gas_target) {
-            ripemd160(abi.encodePacked(gas_used));
+            count += 1;
+            if (use_long) {
+                ripemd160(abi.encodePacked(hashLongString(), gas_used));
+            } else {
+                ripemd160(abi.encodePacked(gas_used));
+            }
             gas_used = start_gas - gasleft();
         }
+        console.log("RIPEMD160 count: %d", count);
     }
 
-    function run_identity(uint256 gas_target) private {
+    function run_identity(uint256 gas_target, bool use_long) private {
         uint256 start_gas = gasleft();
         uint256 gas_used = 0;
 
+        uint256 count = 0;
         while (gas_used < gas_target) {
-            address(4).staticcall(abi.encode(gas_used));
+            count += 1;
+            if (use_long) {
+                address(4).staticcall(abi.encode(hashLongString(), gas_used));
+            } else {
+                address(4).staticcall(abi.encode(gas_used));
+            }
             gas_used = start_gas - gasleft();
         }
+        console.log("Identity count: %d", count);
     }
 
-    function run_modexp(uint256 gas_target) private {
+    function run_modexp(uint256 gas_target, bool use_long) private {
         uint256 start_gas = gasleft();
         uint256 gas_used = 0;
 
         bytes memory base = "8";
         bytes memory exponent = "9";
+        uint256 count = 0;
         while (gas_used < gas_target) {
-            bytes memory modulus = abi.encodePacked(gas_used);
-            address(5).staticcall(
-                abi.encodePacked(base.length, exponent.length, modulus.length, base, exponent, modulus)
-            );
+            count += 1;
+            if (use_long) {
+                bytes memory modulus = abi.encodePacked(hashLongString(), gas_used);
+                address(5).staticcall(
+                    abi.encodePacked(base.length, exponent.length, modulus.length, base, exponent, modulus)
+                );
+            } else {
+                bytes memory modulus = abi.encodePacked(gas_used);
+                address(5).staticcall(
+                    abi.encodePacked(base.length, exponent.length, modulus.length, base, exponent, modulus)
+                );
+            }
             gas_used = start_gas - gasleft();
         }
+        console.log("ModExp count: %d", count);
     }
 
     function run_ecadd(uint256 gas_target) private {

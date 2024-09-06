@@ -9,10 +9,10 @@ contract PrecompilerScript is Script {
 
     function setUp() public {}
 
-    function run(uint256 index, uint256 gas_target) public {
+    function run(uint256 index, uint256 gas_target, bool use_long) public {
         vm.startBroadcast();
 
-        precompiler = new Precompiler(index, gas_target);
+        precompiler = new Precompiler(index, gas_target, use_long);
 
         vm.stopBroadcast();
     }
