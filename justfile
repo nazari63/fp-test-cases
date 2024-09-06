@@ -25,30 +25,22 @@ enclave := "devnet"
 account := "TEST"
 
 # Space-separated list of script arguments
-
-## Precompile 
-# name := "Precompiler"
-# script-file := name + ".s.sol"
-# script-args := "1000000"
-# script-signature := "run(" + \
-#     replace_regex(
-#         replace_regex(
-#             replace_regex(script-args, "\\d+", "uint256"),
-#             "(true|false)", "bool"
-#         ), " ", ","
-#     ) + ")"
-
-## Transfer 
-name := "ERC20Transfer"
-script-file := name + ".s.sol"
-script-args := "2000000 0xa83114A443dA1CecEFC50368531cACE9F37fCCcb"
-script-signature := "run(" + replace_regex(script-args, "^(\\S+)\\s+(\\S+)$", "uint256,address") + ")"
+script-args := "1000000"
+script-signature := "run(" + \
+    replace_regex(
+        replace_regex(
+            replace_regex(
+                replace_regex(script-args, "0x[0-9a-fA-F]{40}", "address"),
+                "\\d+", "uint256",
+            ), "(true|false)", "bool"
+        ), " ", ","
+    ) + ")"
 
 expanded-name := replace_regex(trim(name + " " + script-args), " ", "-")
 fixture-file := join("fixtures", expanded-name + ".json")
 
-op-program-output := join("output", "op-program", expanded-name + ".json")
-cannon-output := join("output", "cannon", expanded-name + ".json")
+op-program-output := join("output", "op-program", file_name(fixture-file))
+cannon-output := join("output", "cannon", file_name(fixture-file))
 
 verbosity := "-vv"
 
