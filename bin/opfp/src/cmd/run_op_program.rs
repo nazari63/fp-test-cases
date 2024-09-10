@@ -264,9 +264,13 @@ impl OpProgramCommand {
         }
 
         for (key, value) in &self.fixture.witness_data {
-            let file = self
-                .data_dir
-                .join(format!("{}.txt", key.encode_hex_with_prefix()));
+            let key_hex = key.encode_hex();
+
+            let (dirname, filename) = key_hex.split_at(4);
+            let dirname = self.data_dir.join(dirname);
+            std::fs::create_dir_all(&dirname)?;
+
+            let file = dirname.join(format!("{}.txt", filename));
             std::fs::write(file, value.encode_hex())?;
         }
 
@@ -306,6 +310,8 @@ impl OpProgramCommand {
             "terminal".to_string(),
             "--datadir".to_string(),
             self.data_dir.to_str().unwrap().to_string(),
+            "--data.format".to_string(),
+            "directory".to_string(),
         ];
         match &self.fixture.inputs.chain_definition {
             ChainDefinition::Named(name) => {

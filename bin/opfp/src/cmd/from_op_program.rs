@@ -5,8 +5,10 @@ use alloy_primitives::BlockHash;
 use alloy_primitives::{hex::ToHexExt, B256};
 use clap::{ArgAction, Parser};
 use color_eyre::{eyre::eyre, Result};
+use fp_test_fixtures::{
+    self, ChainDefinition, FaultProofFixture, FaultProofInputs, FaultProofStatus, Genesis,
+};
 use kona_derive::online::*;
-use fp_test_fixtures::{self, ChainDefinition, FaultProofFixture, FaultProofInputs, FaultProofStatus, Genesis};
 use reqwest::Url;
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -119,9 +121,17 @@ impl FromOpProgram {
 
                 command
                     .arg("--l2.genesis")
-                    .arg(genesis_file.to_str().ok_or(eyre!("Failed to convert genesis file path to string"))?)
+                    .arg(
+                        genesis_file
+                            .to_str()
+                            .ok_or(eyre!("Failed to convert genesis file path to string"))?,
+                    )
                     .arg("--rollup.config")
-                    .arg(rollup_config_file.to_str().ok_or(eyre!("Failed to convert rollup config file path to string"))?);
+                    .arg(
+                        rollup_config_file
+                            .to_str()
+                            .ok_or(eyre!("Failed to convert rollup config file path to string"))?,
+                    );
             }
         }
         // Execute the op-program binary.
@@ -145,7 +155,13 @@ impl FromOpProgram {
             .arg("--log.format")
             .arg("terminal")
             .arg("--datadir")
-            .arg(output_dir.to_str().ok_or(eyre!("Failed to convert output directory path to string"))?)
+            .arg(
+                output_dir
+                    .to_str()
+                    .ok_or(eyre!("Failed to convert output directory path to string"))?,
+            )
+            .arg("--data.format")
+            .arg("directory")
             .stdout(stdout())
             .stderr(stderr())
             .status()
@@ -161,26 +177,42 @@ impl FromOpProgram {
         // Parse the output of the op-program binary and populate the witness data.
         output_dir.read_dir()?.try_for_each(|entry| -> Result<()> {
             let entry = entry?;
-            let path = entry.path();
-            debug!(target: TARGET, "Found file: {:?}", path);
+            let prefix = entry.path();
+            debug!(target: TARGET, "Found dir: {:?}", prefix);
+            prefix.read_dir()?.try_for_each(|entry| -> Result<()> {
+                let entry = entry?;
+                let filename = entry.path();
+                debug!(target: TARGET, "Found file: {:?}", filename);
 
-            let contents = std::fs::read_to_string(&path)?;
-            debug!(target: TARGET, "File contents: {}", contents);
+                let contents = std::fs::read_to_string(&filename)?;
+                debug!(target: TARGET, "File contents: {}", contents);
 
-            // strip the .txt suffix from the file path
-            let key = path
-                .file_name()
-                .ok_or(eyre!("Failed to get file name"))?
-                .to_str()
-                .ok_or(eyre!("Failed to convert file name to string"))?
-                .split('.')
-                .next()
-                .ok_or(eyre!("Failed to strip file extension"))?;
+                let key_prefix = prefix
+                    .file_name()
+                    .ok_or(eyre!("Failed to get directory name"))?
+                    .to_os_string()
+                    .into_string()
+                    .map_err(|_| eyre!("Failed to convert directory name into string"))?;
 
-            let witness = FromHex::from_hex(contents)?;
+                // strip the .txt suffix from the file path
+                let key: String = key_prefix
+                    + filename
+                        .file_name()
+                        .ok_or(eyre!("Failed to get file name"))?
+                        .to_str()
+                        .ok_or(eyre!("Failed to convert file name to string"))?
+                        .split('.')
+                        .next()
+                        .ok_or(eyre!("Failed to strip file extension"))?;
 
-            witness_data.insert(key.parse::<B256>()?, witness);
-            Ok(())
+                debug!(target: TARGET, "Key: {}", key);
+
+                let key: B256 = FromHex::from_hex(key)?;
+                let witness = FromHex::from_hex(contents)?;
+
+                witness_data.insert(key, witness);
+                Ok(())
+            })
         })?;
 
         let fixture = FaultProofFixture {
@@ -269,7 +301,11 @@ impl FromOpProgram {
             let genesis: Genesis = serde_json::from_reader(genesis_file)?;
             chain_definition = ChainDefinition::Unnamed(cfg.into(), genesis);
         } else {
-            chain_definition = ChainDefinition::Named(self.chain_name.clone().ok_or_else(|| eyre!("Missing chain name"))?);
+            chain_definition = ChainDefinition::Named(
+                self.chain_name
+                    .clone()
+                    .ok_or_else(|| eyre!("Missing chain name"))?,
+            );
         }
 
         let l1_head: BlockHash;
