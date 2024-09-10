@@ -33,11 +33,22 @@ $ just build
 ```
 
 ### Start a local devnet
+
+#### Create a local devnet with the default config file (devnet/standard.yaml)
+
 ```shell
 $ just create-devnet
 ```
 
+#### Create a local devnet with a custom config file
+
+Config files must follow the format described in the [optimism-package](https://github.com/ethpandaops/optimism-package) repository.
+```shell
+$ just devnet-config-file=devnet/minimal.yaml create-devnet
+```
+
 ### Cleanup a local devnet
+
 ```shell
 $ just cleanup-devnet
 ```
@@ -52,16 +63,36 @@ $ just name=Reader script-args="2000000" generate-fixture
 
 ### Test Fixtures in op-program
 
+#### Using fixtures defined by the script name and arguments
+
 ```shell
 $ just name=<script name> script-args="<script args>" run-fixture
 # Example
 $ just name=Reader script-args="2000000" run-fixture
 ```
 
+#### Using a fixture file
+
+```shell
+$ just fixture-file=<fixture file> run-fixture
+# Example
+$ just fixture-file=fixtures/Reader-2000000.json run-fixture
+```
+
 ### Test Fixtures in Cannon
+
+#### Using fixtures defined by the script name and arguments
 
 ```shell
 $ just name=<script name> script-args="<script args>" cannon-fixture
 # Example
 $ just name=Reader script-args="2000000" cannon-fixture
+```
+
+#### Using a fixture file
+
+```shell
+$ just fixture-file=<fixture file> run-fixture
+# Example
+$ just fixture-file=fixtures/Reader-2000000.json cannon-fixture
 ```
