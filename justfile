@@ -21,6 +21,7 @@ cannon-state := join(cannon-dir, "state.json")
 cannon-meta := join(cannon-dir, "meta.json")
 
 enclave := "devnet"
+devnet-config-file := "devnet/minimal.yaml"
 
 account := "TEST"
 
@@ -80,7 +81,7 @@ cleanup-devnet:
 # Creates a new local devnet
 create-devnet:
     kurtosis run github.com/ethpandaops/optimism-package \
-        --args-file network_params.yaml \
+        --args-file {{devnet-config-file}} \
         --enclave {{enclave}}
 
 # Generates a fixture for the given script (name) and arguments (script-args)
