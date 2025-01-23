@@ -4,7 +4,7 @@ opfp := if `which opfp || true` != "" { `which opfp` } else { "target/debug/opfp
 op-program := if `which op-program || true` != "" { `which op-program` } else { join(env("OPTIMISM_DIR"), "op-program/bin/op-program") }
 cannon-dir := if `which cannon || true` != "" { parent_directory(parent_directory(`which cannon`)) } else { join(env("OPTIMISM_DIR"), "cannon") }
 cannon-bin := join(cannon-dir, "bin/cannon")
-cannon-state := join(cannon-dir, "state.json")
+cannon-state := join(cannon-dir, "state.bin.gz")
 cannon-meta := join(cannon-dir, "meta.json")
 enclave := "devnet"
 devnet-config-file := "devnet/standard.yaml"
@@ -21,8 +21,8 @@ fixture-file := join("fixtures", expanded-name + ".json")
 op-program-output := join("output", "op-program", file_name(fixture-file))
 cannon-output := join("output", "cannon", file_name(fixture-file))
 verbosity := "-vv"
-genesis-path := "op-genesis-configs/genesis.json"
-rollup-path := "op-genesis-configs/rollup.json"
+genesis-path := "op-deployer-configs/genesis-18446744073709551615.json"
+rollup-path := "op-deployer-configs/rollup-18446744073709551615.json"
 
 # default recipe to display help information
 default:
@@ -53,7 +53,7 @@ cleanup-devnet:
 
 # Creates a new local devnet
 create-devnet:
-    kurtosis run github.com/ethpandaops/optimism-package \
+    kurtosis run github.com/jjtny1/optimism-package \
         --args-file {{ devnet-config-file }} \
         --enclave {{ enclave }}
 
@@ -62,8 +62,8 @@ generate-fixture:
     #!/bin/bash
     set -e
 
-    L2_RPC_URL={{ shell("kurtosis service inspect " + enclave + " op-el-1-op-geth-op-node | grep -- ' rpc: ' | sed 's/.*-> //'") }}
-    ROLLUP_URL={{ shell("kurtosis service inspect " + enclave + " op-cl-1-op-node-op-geth | grep -- ' http: ' | sed 's/.*-> //'") }}
+    L2_RPC_URL={{ shell("kurtosis service inspect " + enclave + " op-el-1-op-geth-op-node-op-kurtosis | grep -- ' rpc: ' | sed 's/.*-> //'") }}
+    ROLLUP_URL={{ shell("kurtosis service inspect " + enclave + " op-cl-1-op-node-op-geth-op-kurtosis | grep -- ' http: ' | sed 's/.*-> //'") }}
 
     forge script \
         --non-interactive \
@@ -75,10 +75,10 @@ generate-fixture:
         script/{{ script-file }} \
         {{ script-args }}
 
-    rm -rf op-genesis-configs
-    kurtosis files download {{ enclave }} op-genesis-configs
+    rm -rf op-deployer-configs
+    kurtosis files download {{ enclave }} op-deployer-configs
 
-    L2_BLOCK_NUM=$(($(jq < broadcast/{{ script-file }}/2151908/run-latest.json '.receipts[0].blockNumber' -r)))
+    L2_BLOCK_NUM=$(($(jq < broadcast/{{ script-file }}/18446744073709551615/run-latest.json '.receipts[0].blockNumber' -r)))
 
     while true; do
         SYNC_STATUS=$(cast rpc optimism_syncStatus --rpc-url $ROLLUP_URL)

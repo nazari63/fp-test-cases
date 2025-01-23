@@ -12,7 +12,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::{env, path::PathBuf};
 use tracing::{debug, error, info, trace, warn};
 
-use super::util::RollupConfig;
+use super::util::{RollupConfig, VersionedState};
 
 /// The logging target to use for [tracing].
 const TARGET: &str = "run-op-program";
@@ -155,7 +155,7 @@ impl CannonCommand {
         meta: PathBuf,
         op_program: OpProgramCommand,
     ) -> Self {
-        let output = op_program.data_dir.join("cannon-output.json");
+        let output = op_program.data_dir.join("cannon-output.bin");
         let debug = op_program.data_dir.join("cannon-debug.json");
 
         Self {
@@ -185,9 +185,14 @@ impl CannonCommand {
 
         let runtime = start.elapsed().as_millis();
 
-        let output = std::fs::read_to_string(&self.output)
-            .map_err(|e| eyre!("Failed to read output file: {}", e))?;
-        let output: CannonOutput = serde_json::from_str(&output)?;
+        let data =
+            std::fs::read(&self.output).map_err(|e| eyre!("Failed to read output file: {}", e))?;
+
+        let versioned_state = VersionedState::try_from(data)
+            .map_err(|e| eyre!("Failed to decode versioned state: {}", e))?;
+        let output: CannonOutput = CannonOutput {
+            step: versioned_state.single_threaded_fpvmstate.step,
+        };
 
         let debug_output = std::fs::read_to_string(&self.debug)
             .map_err(|e| eyre!("Failed to read debug output file: {}", e))?;

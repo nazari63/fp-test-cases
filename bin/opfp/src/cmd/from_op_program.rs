@@ -179,40 +179,44 @@ impl FromOpProgram {
             let entry = entry?;
             let prefix = entry.path();
             debug!(target: TARGET, "Found dir: {:?}", prefix);
-            prefix.read_dir()?.try_for_each(|entry| -> Result<()> {
-                let entry = entry?;
-                let filename = entry.path();
-                debug!(target: TARGET, "Found file: {:?}", filename);
+            if prefix.is_dir() {
+                prefix.read_dir()?.try_for_each(|entry| -> Result<()> {
+                    let entry = entry?;
+                    let filename = entry.path();
+                    debug!(target: TARGET, "Found file: {:?}", filename);
 
-                let contents = std::fs::read_to_string(&filename)?;
-                debug!(target: TARGET, "File contents: {}", contents);
+                    let contents = std::fs::read_to_string(&filename)?;
+                    debug!(target: TARGET, "File contents: {}", contents);
 
-                let key_prefix = prefix
-                    .file_name()
-                    .ok_or(eyre!("Failed to get directory name"))?
-                    .to_os_string()
-                    .into_string()
-                    .map_err(|_| eyre!("Failed to convert directory name into string"))?;
-
-                // strip the .txt suffix from the file path
-                let key: String = key_prefix
-                    + filename
+                    let key_prefix = prefix
                         .file_name()
-                        .ok_or(eyre!("Failed to get file name"))?
-                        .to_str()
-                        .ok_or(eyre!("Failed to convert file name to string"))?
-                        .split('.')
-                        .next()
-                        .ok_or(eyre!("Failed to strip file extension"))?;
+                        .ok_or(eyre!("Failed to get directory name"))?
+                        .to_os_string()
+                        .into_string()
+                        .map_err(|_| eyre!("Failed to convert directory name into string"))?;
 
-                debug!(target: TARGET, "Key: {}", key);
+                    // strip the .txt suffix from the file path
+                    let key: String = key_prefix
+                        + filename
+                            .file_name()
+                            .ok_or(eyre!("Failed to get file name"))?
+                            .to_str()
+                            .ok_or(eyre!("Failed to convert file name to string"))?
+                            .split('.')
+                            .next()
+                            .ok_or(eyre!("Failed to strip file extension"))?;
 
-                let key: B256 = FromHex::from_hex(key)?;
-                let witness = FromHex::from_hex(contents)?;
+                    debug!(target: TARGET, "Key: {}", key);
 
-                witness_data.insert(key, witness);
+                    let key: B256 = FromHex::from_hex(key)?;
+                    let witness = FromHex::from_hex(contents)?;
+
+                    witness_data.insert(key, witness);
+                    Ok(())
+                })
+            } else {
                 Ok(())
-            })
+            }
         })?;
 
         let fixture = FaultProofFixture {
