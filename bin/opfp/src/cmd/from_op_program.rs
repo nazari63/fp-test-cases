@@ -154,6 +154,7 @@ impl FromOpProgram {
             .arg(inputs.l2_claim.encode_hex_with_prefix())
             .arg("--log.format")
             .arg("terminal")
+            .arg("--l2.custom")
             .arg("--datadir")
             .arg(
                 output_dir

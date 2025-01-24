@@ -4,10 +4,7 @@ optimism_package:
       - el_type: op-geth
         cl_type: op-node
       network_params:
-        network_id: "18446744073709551615"
         granite_time_offset: 0
-  op_contract_deployer_params:
-    image: local-op-deployer
 ethereum_package:
   network_params:
     preset: minimal

@@ -317,6 +317,7 @@ impl OpProgramCommand {
             self.data_dir.to_str().unwrap().to_string(),
             "--data.format".to_string(),
             "directory".to_string(),
+            "--l2.custom".to_string(),
         ];
         match &self.fixture.inputs.chain_definition {
             ChainDefinition::Named(name) => {

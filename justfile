@@ -21,8 +21,8 @@ fixture-file := join("fixtures", expanded-name + ".json")
 op-program-output := join("output", "op-program", file_name(fixture-file))
 cannon-output := join("output", "cannon", file_name(fixture-file))
 verbosity := "-vv"
-genesis-path := "op-deployer-configs/genesis-18446744073709551615.json"
-rollup-path := "op-deployer-configs/rollup-18446744073709551615.json"
+genesis-path := "op-deployer-configs/genesis-2151908.json"
+rollup-path := "op-deployer-configs/rollup-2151908.json"
 
 # default recipe to display help information
 default:
@@ -53,7 +53,7 @@ cleanup-devnet:
 
 # Creates a new local devnet
 create-devnet:
-    kurtosis run github.com/jjtny1/optimism-package \
+    kurtosis run github.com/ethpandaops/optimism-package \
         --args-file {{ devnet-config-file }} \
         --enclave {{ enclave }}
 
@@ -78,7 +78,7 @@ generate-fixture:
     rm -rf op-deployer-configs
     kurtosis files download {{ enclave }} op-deployer-configs
 
-    L2_BLOCK_NUM=$(($(jq < broadcast/{{ script-file }}/18446744073709551615/run-latest.json '.receipts[0].blockNumber' -r)))
+    L2_BLOCK_NUM=$(($(jq < broadcast/{{ script-file }}/2151908/run-latest.json '.receipts[0].blockNumber' -r)))
 
     while true; do
         SYNC_STATUS=$(cast rpc optimism_syncStatus --rpc-url $ROLLUP_URL)
