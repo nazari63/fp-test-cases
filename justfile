@@ -11,6 +11,7 @@ devnet-config-file := "devnet/standard.yaml"
 account := "TEST"
 name := "Writer"
 script-file := name + ".s.sol"
+l2-block-gas-limit := "60000000"
 
 # Space-separated list of script arguments
 
@@ -23,6 +24,8 @@ cannon-output := join("output", "cannon", file_name(fixture-file))
 verbosity := "-vv"
 genesis-path := "op-deployer-configs/genesis-2151908.json"
 rollup-path := "op-deployer-configs/rollup-2151908.json"
+
+wallets-path := "op-deployer-configs/wallets.json"
 
 # default recipe to display help information
 default:
@@ -128,3 +131,35 @@ cannon-fixture:
         --cannon-meta {{ cannon-meta }} \
         --output {{ cannon-output }} \
         {{ verbosity }}
+
+update-l2-block-gas-limit:
+    #!/bin/bash
+    set -e
+
+    rm -rf op-deployer-configs
+    kurtosis files download {{ enclave }} op-deployer-configs
+
+    SYSTEM_CONFIG_OWNER_PRIVATE_KEY={{ shell("cat " + wallets-path + " | jq '.[].systemConfigOwnerPrivateKey'") }}
+    L1_SYSTEM_CONFIG_ADRESS={{ shell("cat " + rollup-path + " | jq '.l1_system_config_address'") }}
+    L1_RPC_URL=$(kurtosis service inspect {{ enclave }} el-1-geth-lighthouse | grep -- ' rpc: ' | sed 's/.*-> //')
+
+    cast send \
+        --private-key $SYSTEM_CONFIG_OWNER_PRIVATE_KEY \
+        --rpc-url $L1_RPC_URL \
+        $L1_SYSTEM_CONFIG_ADRESS \
+        "setGasLimit(uint64)" \
+        {{ l2-block-gas-limit }}
+
+    L2_BLOCK_NUM=$(($(jq < broadcast/{{ script-file }}/2151908/run-latest.json '.receipts[0].blockNumber' -r)))
+
+get-l2-block-gas-limit:
+    #!/bin/bash
+    set -e
+
+    rm -rf op-deployer-configs
+    kurtosis files download {{ enclave }} op-deployer-configs
+
+    L1_SYSTEM_CONFIG_ADRESS={{ shell("cat " + rollup-path + " | jq '.l1_system_config_address'") }}
+    L1_RPC_URL=$(kurtosis service inspect {{ enclave }} el-1-geth-lighthouse | grep -- ' rpc: ' | sed 's/.*-> //')
+
+    cast call --rpc-url $L1_RPC_URL $L1_SYSTEM_CONFIG_ADRESS  "gasLimit()(uint64)"
