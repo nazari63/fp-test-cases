@@ -132,6 +132,8 @@ cannon-fixture:
         --output {{ cannon-output }} \
         {{ verbosity }}
 
+# Updates the l2 block gas limit using the value specified by l2-block-gas-limit
+# e.g: `just l2-block-gas-limit=1000000 update-l2-block-gas-limit`
 update-l2-block-gas-limit:
     #!/bin/bash
     set -e
@@ -152,6 +154,7 @@ update-l2-block-gas-limit:
 
     L2_BLOCK_NUM=$(($(jq < broadcast/{{ script-file }}/2151908/run-latest.json '.receipts[0].blockNumber' -r)))
 
+# Queries the L1 SystemConfig contract to return the current L2 block gas limit
 get-l2-block-gas-limit:
     #!/bin/bash
     set -e
