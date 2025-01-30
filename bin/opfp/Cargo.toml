@@ -18,6 +18,7 @@ reqwest.workspace = true
 futures.workspace = true
 color-eyre.workspace = true
 tracing-subscriber.workspace = true
+byteorder.workspace = true
 
 # CLI
 clap.workspace = true

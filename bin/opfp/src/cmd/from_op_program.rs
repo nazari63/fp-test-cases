@@ -154,6 +154,7 @@ impl FromOpProgram {
             .arg(inputs.l2_claim.encode_hex_with_prefix())
             .arg("--log.format")
             .arg("terminal")
+            .arg("--l2.custom")
             .arg("--datadir")
             .arg(
                 output_dir
@@ -179,6 +180,9 @@ impl FromOpProgram {
             let entry = entry?;
             let prefix = entry.path();
             debug!(target: TARGET, "Found dir: {:?}", prefix);
+            if !prefix.is_dir() {
+                return Ok(());
+            }
             prefix.read_dir()?.try_for_each(|entry| -> Result<()> {
                 let entry = entry?;
                 let filename = entry.path();

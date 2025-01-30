@@ -47,6 +47,18 @@ Config files must follow the format described in the [optimism-package](https://
 $ just devnet-config-file=devnet/minimal.yaml create-devnet
 ```
 
+#### Get the current L2 block gas limit
+
+```shell
+$ just get-l2-block-gas-limit
+```
+
+#### Update the current L2 block gas limit
+
+```shell
+$ just l2-block-gas-limit=<new_gas_limit> update-l2-block-gas-limit
+```
+
 ### Cleanup a local devnet
 
 ```shell
