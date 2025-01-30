@@ -315,7 +315,7 @@ pub struct CpuScalars {
     pub hi: u32,
 }
 
-trait Decodeable {
+trait Decodable {
     fn decode<T>(&mut self, cursor: &mut Cursor<T>) -> Result<()>
     where
         T: AsRef<[u8]>;
@@ -330,12 +330,12 @@ impl TryFrom<Vec<u8>> for VersionedState {
         let result = v.decode(&mut cursor);
         return match result {
             Ok(_) => Ok(v),
-            Err(_) => Err("invalid versioned state encoding".to_string()),
+            Err(err) => Err(format!("invalid versioned state encoding: {err}").to_string()),
         };
     }
 }
 
-impl Decodeable for VersionedState {
+impl Decodable for VersionedState {
     fn decode<T>(&mut self, cursor: &mut Cursor<T>) -> Result<()>
     where
         T: AsRef<[u8]>,
@@ -345,7 +345,7 @@ impl Decodeable for VersionedState {
     }
 }
 
-impl Decodeable for SingleThreadedFPVMState {
+impl Decodable for SingleThreadedFPVMState {
     fn decode<T>(&mut self, cursor: &mut Cursor<T>) -> Result<()>
     where
         T: AsRef<[u8]>,
@@ -384,7 +384,7 @@ impl Decodeable for SingleThreadedFPVMState {
     }
 }
 
-impl Decodeable for Memory {
+impl Decodable for Memory {
     fn decode<T>(&mut self, cursor: &mut Cursor<T>) -> Result<()>
     where
         T: AsRef<[u8]>,
