@@ -108,3 +108,4 @@ $ just fixture-file=<fixture file> run-fixture
 # Example
 $ just fixture-file=fixtures/Reader-2000000.json cannon-fixture
 ```
+This project is a demonstration of blockchain technology and smart contract integration.
